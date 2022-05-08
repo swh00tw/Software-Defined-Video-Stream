@@ -42,14 +42,14 @@ if __name__ == "__main__":
     parser.add_argument("--port", type=int, default=8080)
     parser.add_argument("--algo", type=str, default="NONE")
     args = vars(parser.parse_args())
-    print(args)
-    try:
-        while True:
-            # send gRPC request to tell server process start streaming
-            gRPC_request('192.168.55.1', 8080, 10, "NONE")
-            # run ffplay
-            # subprocess.run(['ffplay', '-fflags', 'nobuffer', 'rtmp://192.168.55.1/rtmp/live'])
-    except KeyboardInterrupt as e:
-        gRPC_request('192.168.55.1', 8080, 9, "NONE")
-        print("\nstop!!\n")
-        # send gPRC request to tell server process terminate streaming
+    subprocess.run(['ffplay', '-fflags', 'nobuffer', 'rtmp://192.168.55.1/rtmp/live'])
+    # print(args)
+    # try:
+    #     # send gRPC request to tell server process start streaming
+    #     gRPC_request('192.168.55.1', 8080, 10, "NONE")
+    #     # run ffplay
+    #     subprocess.run(['ffplay', '-fflags', 'nobuffer', 'rtmp://192.168.55.1/rtmp/live'])
+    # except KeyboardInterrupt as e:
+    #     gRPC_request('192.168.55.1', 8080, 9, "NONE")
+    #     print("\nstop!!\n")
+    #     # send gPRC request to tell server process terminate streaming
