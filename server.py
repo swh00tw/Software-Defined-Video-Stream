@@ -18,6 +18,10 @@ class FibCalculatorServicer(fib_pb2_grpc.FibCalculatorServicer):
 
     def Compute(self, request, context):
         n = request.order
+        if (n==10):
+            print("start streaming")
+        elif n==9:
+            print("stop streaming")
         value = self._fibonacci(n)
 
         response = fib_pb2.FibResponse()
