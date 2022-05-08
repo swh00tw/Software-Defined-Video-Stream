@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+service FibCalculator {
+    rpc Compute(FibRequest) returns (FibResponse);
+}
+
+message FibRequest {
+    int64 order = 1;
+}
+
+message FibResponse {
+    int64 value = 1;
+}

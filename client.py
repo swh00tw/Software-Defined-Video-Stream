@@ -37,28 +37,32 @@ def gRPC_request(ip, port, isStart, algo):
         print(response.value)
 
 
-# if __name__ == "__main__":
-#     parser = argparse.ArgumentParser()
-#     parser.add_argument("--ip", type=str, default="localhost")
-#     parser.add_argument("--port", type=int, default=8080)
-#     parser.add_argument("--order", type=int, default=10)
-#     args = vars(parser.parse_args())
-#     main(args)
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--ip", type=str, default="localhost")
     parser.add_argument("--port", type=int, default=8080)
-    parser.add_argument("--algo", type=str, default="NONE")
+    parser.add_argument("--order", type=int, default=10)
     args = vars(parser.parse_args())
-    print(args)
     try:
         while True:
-            # send gRPC request to tell server process start streaming
-            gRPC_request('192.168.55.1', '5000', 1, "NONE")
-            # run ffplay
-            # subprocess.run(['ffplay', '-fflags', 'nobuffer', 'rtmp://192.168.55.1/rtmp/live'])
+            main({"ip": "localhost", "port": 8080, "order": 10})
     except KeyboardInterrupt as e:
-        gRPC_request('192.168.55.1', '5000', 3, "NONE")
-        print("\nstop!!\n")
-        # send gPRC request to tell server process terminate streaming
+         main({"ip": "localhost", "port": 8080, "order": 9})
+
+# if __name__ == "__main__":
+#     parser = argparse.ArgumentParser()
+#     parser.add_argument("--ip", type=str, default="localhost")
+#     parser.add_argument("--port", type=int, default=8080)
+#     parser.add_argument("--algo", type=str, default="NONE")
+#     args = vars(parser.parse_args())
+#     print(args)
+#     try:
+#         while True:
+#             # send gRPC request to tell server process start streaming
+#             gRPC_request('192.168.55.1', '5000', 1, "NONE")
+#             # run ffplay
+#             # subprocess.run(['ffplay', '-fflags', 'nobuffer', 'rtmp://192.168.55.1/rtmp/live'])
+#     except KeyboardInterrupt as e:
+#         gRPC_request('192.168.55.1', '5000', 3, "NONE")
+#         print("\nstop!!\n")
+#         # send gPRC request to tell server process terminate streaming
