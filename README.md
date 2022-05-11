@@ -24,5 +24,5 @@ $ python3 server.py --ip 0.0.0.0 --port 8080
 
 # Run client
 ```
-$ python3 client.py --ip localhost --port 8080 --order 10
+$ python3 client.py
 ```
