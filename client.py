@@ -23,38 +23,34 @@ def main(args):
         response = stub.Compute(request)
         print(response.value)
 
-# isStart = 10, start streaming
+# algo = 10, use 1st algorithm
+# algo = 11, use 1st algorithm
+# algo = 12, use 1st algorithm
 # isStart = 9, end streaming
-def gRPC_request(ip, port, isStart, algo):
+def gRPC_request(ip, port, algo):
     host = f"{ip}:{port}"
     print(host)
     with grpc.insecure_channel(host) as channel:
         stub = fib_pb2_grpc.FibCalculatorStub(channel)
 
         request = fib_pb2.FibRequest()
-        request.order = isStart
+        request.order = algo
 
         response = stub.Compute(request)
         print(response.value)
-
-def ffplay():
-    subprocess.run(['ffplay', '-fflags', 'nobuffer', 'rtmp://192.168.55.1/rtmp/live'])
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--ip", type=str, default="localhost")
     parser.add_argument("--port", type=int, default=8080)
-    parser.add_argument("--algo", type=str, default="NONE")
+    parser.add_argument("--order", type=int, default=0)
     args = vars(parser.parse_args())
-    # subprocess.run(['ffplay', '-fflags', 'nobuffer', 'rtmp://192.168.55.1/rtmp/live'])
+
     print(args)
-    p1 = mp.Process(target=ffplay)
     try:
         # send gRPC request to tell server process start streaming
-        gRPC_request('192.168.55.1', 8080, 10, "NONE")
-        p1.start()
+        gRPC_request('192.168.55.1', 8080, args["order"])
     except KeyboardInterrupt as e:
-        gRPC_request('192.168.55.1', 8080, 9, "NONE")
-        p1.join()
+        # gRPC_request('192.168.55.1', 8080, 9)
         print("\nstop!!\n")
         # send gPRC request to tell server process terminate streaming
