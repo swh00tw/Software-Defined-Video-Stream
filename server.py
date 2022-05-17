@@ -14,8 +14,6 @@ import fib_pb2
 import fib_pb2_grpc
 print(cv2.__version__)
 
-queue = mp.Queue(maxsize=300)
-
 def gstreamer_camera(queue):
     # Use the provided pipeline to construct the video capture in opencv
     pipeline = (
@@ -43,9 +41,9 @@ def gstreamer_camera(queue):
             if not ret:
                 print('error')
                 print(frame)
-                break
-            print('receive frame')
-            queue.put(frame)
+            else:
+                print('receive frame')
+                queue.put(frame)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
     except KeyboardInterrupt as e:
@@ -81,27 +79,24 @@ def gstreamer_rtmpstream(queue):
     except KeyboardInterrupt as e:
         out.release()
 
-p1 = mp.Process(target=gstreamer_camera, args=(queue,))
-p2 = mp.Process(target=gstreamer_rtmpstream, args=(queue,))
-
 class FibCalculatorServicer(fib_pb2_grpc.FibCalculatorServicer):
 
     def __init__(self):
-        pass
+        self.subprocess = False
 
     def Compute(self, request, context):
         n = request.order
         value = 1
         if n==10:
-            print("start streaming")
-            value = 1
-            self.stream_process = subprocess.Popen(['python', 'template.py'])
-            # p1.start()
-            # p2.start()
+            print("algo 1")
+        if n==11:
+            print("algo 2")
+        if n==12:
+            print("algo 3")
         elif n==9:
             print("stop streaming")
             value = 0
-            self.stream_process.terminate()
+            # self.stream_process.terminate()
             # p1.join()
             # p2.join()
 
@@ -137,9 +132,19 @@ if __name__ == "__main__":
     fib_pb2_grpc.add_FibCalculatorServicer_to_server(servicer, server)
 
     try:
+        algo = mp.Queue(maxsize=1)
+        queue = mp.Queue(maxsize=300)
+        p1 = mp.Process(target=gstreamer_camera, args=(queue,))
+        p2 = mp.Process(target=gstreamer_rtmpstream, args=(queue,))
+        p1.start()
+        p2.start()
+
+        
         server.add_insecure_port(f"{args['ip']}:{args['port']}")
         server.start()
         print(f"Run gRPC Server at {args['ip']}:{args['port']}")
         server.wait_for_termination()
+        p1.join()
+        p2.join()
     except KeyboardInterrupt:
         pass
