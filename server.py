@@ -1,4 +1,5 @@
 import os
+import mediapipe
 import cv2
 import subprocess
 import multiprocessing as mp
@@ -32,24 +33,85 @@ def gstreamer_camera(queue):
     )
     # Complete the function body
     cap = cv2.VideoCapture(pipeline, cv2.CAP_GSTREAMER)
-    retval = cv2.VideoCapture.isOpened(cap)
-    print('retval: ', retval)
+    # retval = cv2.VideoCapture.isOpened(cap)
+    # print('retval: ', retval)
     # print(cap)
     try:
         while True:
             ret, frame = cap.read()
             if not ret:
                 print('error')
-                print(frame)
+                # print(frame)
             else:
-                print('receive frame')
+                # print('receive frame')
                 queue.put(frame)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
     except KeyboardInterrupt as e:
         cap.release()
 
-def gstreamer_rtmpstream(queue):
+def algo1(image):
+    # hand tracking
+    mp_hands = mediapipe.solutions.hands
+    mp_drawing_styles = mediapipe.solutions.drawing_styles
+    mp_drawing = mediapipe.solutions.drawing_utils
+    with mp_hands.Hands(
+        min_detection_confidence=0.5,
+        min_tracking_confidence=0.5) as hands:
+
+        results = hands.process(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+        if results.multi_hand_landmarks:
+            for hand_landmarks in results.multi_hand_landmarks:
+                mp_drawing.draw_landmarks(
+                    image,
+                    hand_landmarks,
+                    mp_hands.HAND_CONNECTIONS,
+                    mp_drawing_styles.get_default_hand_landmarks_style(),
+                    mp_drawing_styles.get_default_hand_connections_style())
+
+        return image
+
+def algo2(image):
+    # object detection
+    mp_object_detection = mediapipe.solutions.object_detection
+    mp_drawing = mediapipe.solutions.drawing_utils 
+    with mp_object_detection.ObjectDetection(
+        min_detection_confidence=0.1) as object_detection:
+
+        results = object_detection.process(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+
+        if results.detections:
+            for detection in results.detections:
+                mp_drawing.draw_detection(image, detection)
+
+        return image
+
+def algo3(image):
+    mp_drawing = mediapipe.solutions.drawing_utils
+    mp_drawing_styles = mediapipe.solutions.drawing_styles
+    mp_pose = mediapipe.solutions.pose
+
+    with mp_pose.Pose(
+            min_detection_confidence=0.5,
+            min_tracking_confidence=0.5) as pose:
+        # To improve performance, optionally mark the image as not writeable to
+        # pass by reference.
+        image.flags.writeable = False
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        results = pose.process(image)
+
+        # Draw the pose annotation on the image.
+        image.flags.writeable = True
+        image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+        mp_drawing.draw_landmarks(
+            image,
+            results.pose_landmarks,
+            mp_pose.POSE_CONNECTIONS,
+            landmark_drawing_spec=mp_drawing_styles.get_default_pose_landmarks_style())
+        # Flip the image horizontally for a selfie-view display.
+        return image    
+
+def gstreamer_rtmpstream(queue, algo):
     # Use the provided pipeline to construct the video writer in opencv
     pipeline = (
         "appsrc ! "
@@ -67,11 +129,26 @@ def gstreamer_rtmpstream(queue):
     # You can apply some simple computer vision algorithm here
     #pass
     out = cv2.VideoWriter(pipeline, 0, 25, (1920, 1080))
+    algo_number=1
     try:
         while True:
             frame = queue.get()
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            print('process frame')
+            # frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            # print('process frame')
+            if not algo.empty():
+                algo_idx = algo.get()
+                print(f'algo: {algo_idx}')
+                algo_number = algo_idx
+
+            if algo_number==1:
+                frame = algo1(frame)
+            elif algo_number==2:
+                frame = algo2(frame)
+            elif algo_number==3:
+                frame = algo3(frame)
+            else:
+                print('NO ALGO')
+                    
             try:
                 out.write(frame)
             except:
@@ -89,10 +166,13 @@ class FibCalculatorServicer(fib_pb2_grpc.FibCalculatorServicer):
         value = 1
         if n==10:
             print("algo 1")
+            algo.put(1)
         if n==11:
             print("algo 2")
+            algo.put(2)
         if n==12:
             print("algo 3")
+            algo.put(3)
         elif n==9:
             print("stop streaming")
             value = 0
@@ -134,8 +214,10 @@ if __name__ == "__main__":
     try:
         algo = mp.Queue(maxsize=1)
         queue = mp.Queue(maxsize=300)
+        # default val
+        algo.put(1)
         p1 = mp.Process(target=gstreamer_camera, args=(queue,))
-        p2 = mp.Process(target=gstreamer_rtmpstream, args=(queue,))
+        p2 = mp.Process(target=gstreamer_rtmpstream, args=(queue,algo))
         p1.start()
         p2.start()
 
