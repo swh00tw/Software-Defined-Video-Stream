@@ -1,4 +1,5 @@
 # Software-Defined-Video-Stream
+
 NTUEE NMLAB-2022-spring homework
 
 # Setup
@@ -18,11 +19,19 @@ $ make
 ```
 
 # Run server
+
 ```
-$ python3 server.py --ip 0.0.0.0 --port 8080
+$ python3 server.py
 ```
 
 # Run client
+
+Use different image processing algorithms:
+ALGO_NUMBER 10 --> hand tracking
+ALGO_NUMBER 11 --> object detection
+ALGO_NUMBER 12 --> pose estimation
+
 ```
-$ python3 client.py
+$ python3 client.py --order ALGO_NUMBER
+$ ffplay -fflags nobuffer rtmp://192.168.55.1/rtmp/live
 ```
