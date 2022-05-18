@@ -87,6 +87,7 @@ def algo2(image):
         return image
 
 def algo3(image):
+    # pose estimation
     mp_drawing = mediapipe.solutions.drawing_utils
     mp_drawing_styles = mediapipe.solutions.drawing_styles
     mp_pose = mediapipe.solutions.pose

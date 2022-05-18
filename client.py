@@ -24,9 +24,8 @@ def main(args):
         print(response.value)
 
 # algo = 10, use 1st algorithm
-# algo = 11, use 1st algorithm
-# algo = 12, use 1st algorithm
-# isStart = 9, end streaming
+# algo = 11, use 2nd algorithm
+# algo = 12, use 3rd algorithm
 def gRPC_request(ip, port, algo):
     host = f"{ip}:{port}"
     print(host)
